@@ -79,4 +79,4 @@ theme: cafe
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: git@github.com:liangjingzhen/liangjingzhen.github.io.git
+  repo: https://liangjingzhen@github.com/liangjingzhen/liangjingzhen.github.io.git
