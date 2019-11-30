@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>网站用户访问量统计-用户标识 | Dasu&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="一个站点的访问用户，从业务角度看，可分为登录用户和访客用户。登录用户有明确的标识符（比如user_id），而访客用户则需要通过其它指标来标识。因此，要统计访问用户量，需要解决以下几点：  针对登录用户，用户标识是什么？ 针对登录用户，从哪种渠道获取用户标识，cookie中、jsp变量中、还是js变量中？还是其它？ 针对访客用户，使用哪种方式来标识用户？  几种常用工具的对比下面对几种经常使用的统计">
+<meta name="keywords" content="Web监控">
+<meta property="og:type" content="article">
+<meta property="og:title" content="网站用户访问量统计-用户标识">
+<meta property="og:url" content="https://liangjingzhen.github.io/2019/04/27/网站用户访问量统计-用户标识/index.html">
+<meta property="og:site_name" content="Dasu&#39;s Blog">
+<meta property="og:description" content="一个站点的访问用户，从业务角度看，可分为登录用户和访客用户。登录用户有明确的标识符（比如user_id），而访客用户则需要通过其它指标来标识。因此，要统计访问用户量，需要解决以下几点：  针对登录用户，用户标识是什么？ 针对登录用户，从哪种渠道获取用户标识，cookie中、jsp变量中、还是js变量中？还是其它？ 针对访客用户，使用哪种方式来标识用户？  几种常用工具的对比下面对几种经常使用的统计">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://liangjingzhen.github.io/images/网站用户访问量的统计方法/figure1.png">
+<meta property="og:updated_time" content="2019-11-30T07:31:05.057Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="网站用户访问量统计-用户标识">
+<meta name="twitter:description" content="一个站点的访问用户，从业务角度看，可分为登录用户和访客用户。登录用户有明确的标识符（比如user_id），而访客用户则需要通过其它指标来标识。因此，要统计访问用户量，需要解决以下几点：  针对登录用户，用户标识是什么？ 针对登录用户，从哪种渠道获取用户标识，cookie中、jsp变量中、还是js变量中？还是其它？ 针对访客用户，使用哪种方式来标识用户？  几种常用工具的对比下面对几种经常使用的统计">
+<meta name="twitter:image" content="https://liangjingzhen.github.io/images/网站用户访问量的统计方法/figure1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Dasu&#39;s Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    
+    <div id="header-inner" class="inner">
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://liangjingzhen.github.io"></form>
+      </div>
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">归档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      
+    </div>
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Dasu&#39;s Blog</a>
+      </h1>
+      
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-网站用户访问量统计-用户标识" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/04/27/网站用户访问量统计-用户标识/" class="article-date">
+  <time datetime="2019-04-27T09:47:11.000Z" itemprop="datePublished">2019-04-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/APM/">APM</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      网站用户访问量统计-用户标识
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <!-- Table of Contents -->
+        
+        <p>一个站点的访问用户，从业务角度看，可分为登录用户和访客用户。登录用户有明确的标识符（比如user_id），而访客用户则需要通过其它指标来标识。<br>因此，要统计访问用户量，需要解决以下几点：</p>
+<ol>
+<li>针对登录用户，用户标识是什么？</li>
+<li>针对登录用户，从哪种渠道获取用户标识，cookie中、jsp变量中、还是js变量中？还是其它？</li>
+<li>针对访客用户，使用哪种方式来标识用户？</li>
+</ol>
+<h2 id="几种常用工具的对比"><a href="#几种常用工具的对比" class="headerlink" title="几种常用工具的对比"></a>几种常用工具的对比</h2><p>下面对几种经常使用的统计工具GrowingIO（GR）、Google Analytics（GA）、百度统计的配置方法和数据发送方式逐个进行分析。</p>
+<h3 id="SDK配置和用户信息采集"><a href="#SDK配置和用户信息采集" class="headerlink" title="SDK配置和用户信息采集"></a>SDK配置和用户信息采集</h3><p>三种工具均基于cookie来采集数据：当页面加载SDK时，服务器向客户端写入标识用户身份的cookie，百度统计还设置了会话cookie（session）。</p>
+<p><img src="/images/网站用户访问量的统计方法/figure1.png" alt></p>
+<center>图1：GR、GA、百度统计在客户端设置的用于标识用户ID的cookie</center>
+
+<h4 id="GrowingIO"><a href="#GrowingIO" class="headerlink" title="GrowingIO"></a>GrowingIO</h4><p>1.系统分配项目ID<br>2.将生成的跟踪ID配置到SDK（一段内联js脚本）中<br>3.在加载SDK的内联代码中设置关注字段，示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">_vds.push([&apos;setCS1&apos;, &apos;CS1的key&apos;, &apos;CS1的value&apos;]);</span><br><span class="line">_vds.push([&apos;setCS2&apos;, &apos;CS2的key&apos;, &apos;CS2的value&apos;]);</span><br></pre></td></tr></table></figure></p>
+<p>其中CS1用于识别用户身份ID，即客户应用中的登录用户。</p>
+<ol start="4">
+<li>客户应用加载SDK后，向客户端写入cookie（含会话cookie）</li>
+<li>从cookie中获取用户ID，作为参数发送给服务器</li>
+</ol>
+<p>GR用户可任意时候登录系统设置用户群，设置后GR将自动关联用户信息。</p>
+<h4 id="Google-Analytics"><a href="#Google-Analytics" class="headerlink" title="Google Analytics"></a>Google Analytics</h4><ol>
+<li>设置统计名称，登记监控网站地址，设置其它辅助信息</li>
+<li>分配跟踪ID    </li>
+<li><p>将生成的跟踪ID配置到SDK（一段内联js脚本）中。如果要启用“会话统一”，即归集登录用户数据，则需在SDK中添加下面的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ga(&apos;set&apos;, &apos;userId&apos;, &#123;&#123;USER_ID&#125;&#125;); // 使用已登录的 user_id 来设置 User ID。</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>客户应用加载SDK后，向客户端写入cookie（含会话cookie）</p>
+</li>
+<li>从cookie中获取用户ID，作为参数发送给服务器</li>
+</ol>
+<h4 id="百度统计"><a href="#百度统计" class="headerlink" title="百度统计"></a>百度统计</h4><ol>
+<li>由“账户+站点”生成跟踪ID    </li>
+<li>将生成的跟踪ID配置到SDK（一段内联js脚本）中。</li>
+<li><p>在加载SDK的内联代码中设置关注字段，示例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">_. mt.push([&apos;_setCustomVar&apos;, index, name, value, opt_scope]);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>客户应用加载SDK后，向客户端写入cookie（含会话cookie）</p>
+</li>
+<li>携带cookie提交请求至服务器</li>
+</ol>
+<h3 id="数据上传"><a href="#数据上传" class="headerlink" title="数据上传"></a>数据上传</h3><p>GrowingIO是通过XMLHttpRequest（XHR）方式上传数据的，而百度统计和GA则是通过向服务器发送一个图片请求（图像灯标）来上传数据的。</p>
+<p>XMLHttpRequest（XHR）用来异步收发数据，可以向请求报文中添加任意的头信息和参数（包括GET和POST），并读取从服务器返回的头信息，以及响应文本自身。    但XHR发送数据受到跨域的影响。</p>
+<p>图像灯标方式通过向服务器请求一个透明的1×1的GIF图片文件，这个文件请求以及请求时间会在服务器日志中被记录，而文件请求信息包含了统计代码收集的数据和Cookie信息。这是将信息发回服务器的最有效方法。其开销很小，而且任何服务器端错误都不会影响客户端。但是该方式有个缺点，只能发送数量有限的数据。</p>
+<h3 id="特性概括"><a href="#特性概括" class="headerlink" title="特性概括"></a>特性概括</h3><p>以上三种统计的共同点是，web应用开发者都是通过在需要监控的页面增加一段内联脚本从服务提供商的服务器下载文件，即所谓的“异步加载执行”。</p>
+<p>“用户标识”都是由使用方（客户）来定义的，三者都提供了JS API，可用于设置登录用户标识（参数的格式由服务商指定，设置工作需要由使用方开发者来完成）。如果没有设置登录用户标识，则随机生成一个字符串，作为访客标记。Cookie中的标记始终被上传到服务器。</p>
+<h2 id="用户标识方案"><a href="#用户标识方案" class="headerlink" title="用户标识方案"></a>用户标识方案</h2><p>参考已有统计工具，这里提出如下实现方案：</p>
+<h3 id="用户判定规则"><a href="#用户判定规则" class="headerlink" title="用户判定规则"></a>用户判定规则</h3><p>将每个客户端视为一个用户，在cookie中设置用户ID。如果已设置了登录用户标识，则以设置值为准，否则使用随机生成的字符串作为用户ID。</p>
+<p>Cookie需设置足够长的有效期，比如10年。当用户清除本地cookie时，需要重新生成cookie，这将会认为是一个新用户。</p>
+<h3 id="JS-API"><a href="#JS-API" class="headerlink" title="JS-API"></a>JS-API</h3><p>声明全局变量（也可使用命名空间以减少全局污染）<code>userid</code>，其值可为指定的用户ID值（常量），也可定义为一个函数，但需要有返回值，该值将作为用户ID。如果为jsp页面，可用<code>&lt;%=USER_ID %&gt;</code>这类变量来动态获取。</p>
+<pre><code>// declare variable
+userid = value;
+
+// 将`userid`保存至全域cookie中（如果已经存在则跳过）
+(userid = getCookie(&quot;_user_id&quot;)) 
+|| (userid = typeof value === &quot;string&quot; 
+    ? value 
+    : typeof value === &quot;function&quot; 
+        ? value() 
+        : randomString();
+
+setCookie(&quot;_user_id&quot;, userid, domain, &quot;/&quot;, expires);
+
+// 向服务器发送前从cookie中取出用户ID，设置为参数
+function assembleData() {
+    // ...
+    userid = getCookie(&quot;_user_id&quot;);
+    setRequestParam(&quot;userid&quot;, userid);
+    // ...
+}
+
+// 发送到服务器
+send();
+</code></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://liangjingzhen.github.io/2019/04/27/网站用户访问量统计-用户标识/" data-id="ck3larhyd000c1wplo1cohrha" class="article-share-link">分享</a>
+      
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web监控/">Web监控</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+ <script src="/jquery/jquery.min.js"></script>
+  <div id="random_posts">
+    <h2>推荐文章</h2>
+    <div class="random_posts_ul">
+      <script>
+          var random_count =4
+          var site = {BASE_URI:'/'};
+          function load_random_posts(obj) {
+              var arr=site.posts;
+              if (!obj) return;
+              // var count = $(obj).attr('data-count') || 6;
+              for (var i, tmp, n = arr.length; n; i = Math.floor(Math.random() * n), tmp = arr[--n], arr[n] = arr[i], arr[i] = tmp);
+              arr = arr.slice(0, random_count);
+              var html = '<ul>';
+            
+              for(var j=0;j<arr.length;j++){
+                var item=arr[j];
+                html += '<li><strong>' + 
+                item.date + ':&nbsp;&nbsp;<a href="' + (site.BASE_URI+item.uri) + '">' + 
+                (item.title || item.uri) + '</a></strong>';
+                if(item.excerpt){
+                  html +='<div class="post-excerpt">'+item.excerpt+'</div>';
+                }
+                html +='</li>';
+                
+              }
+              $(obj).html(html + '</ul>');
+          }
+          $('.random_posts_ul').each(function () {
+              var c = this;
+              if (!site.posts || !site.posts.length){
+                  $.getJSON(site.BASE_URI + 'js/posts.js',function(json){site.posts = json;load_random_posts(c)});
+              } 
+               else{
+                load_random_posts(c);
+              }
+          });
+      </script>
+    </div>
+  </div>
+
+    
+<nav id="article-nav">
+  
+    <a href="/2019/04/27/echarts地图自适应中出现重叠错位的两个地图问题排查/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          echarts地图自适应中出现重叠错位的两个地图问题排查
+        
+      </div>
+    </a>
+  
+  
+</nav>
+
+  
+</article>
+ 
+     
+  <div class="comments" id="comments">
+    
+     
+       
+      <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
+    
+       
+      
+      
+  </div>
+ 
+  
+
+</section>
+           
+    <aside id="sidebar">
+  
+    
+    <div class="widget-wrap">
+    
+      <div class="widget" id="toc-widget-fixed">
+      
+        <strong class="toc-title">文章目录</strong>
+        <div class="toc-widget-list">
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#几种常用工具的对比"><span class="toc-number">1.</span> <span class="toc-text">几种常用工具的对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SDK配置和用户信息采集"><span class="toc-number">1.1.</span> <span class="toc-text">SDK配置和用户信息采集</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#GrowingIO"><span class="toc-number">1.1.1.</span> <span class="toc-text">GrowingIO</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Google-Analytics"><span class="toc-number">1.1.2.</span> <span class="toc-text">Google Analytics</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#百度统计"><span class="toc-number">1.1.3.</span> <span class="toc-text">百度统计</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数据上传"><span class="toc-number">1.2.</span> <span class="toc-text">数据上传</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#特性概括"><span class="toc-number">1.3.</span> <span class="toc-text">特性概括</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#用户标识方案"><span class="toc-number">2.</span> <span class="toc-text">用户标识方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#用户判定规则"><span class="toc-number">2.1.</span> <span class="toc-text">用户判定规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#JS-API"><span class="toc-number">2.2.</span> <span class="toc-text">JS-API</span></a></li></ol></li></ol>
+          </div>
+      </div>
+    </div>
+
+  
+    
+
+  
+    
+  
+    
+  
+    
+
+  
+</aside>
+
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-left">
+      &copy; 2014 - 2019 Dasu&nbsp;|&nbsp;
+      主题 <a href="https://github.com/giscafer/hexo-theme-cafe/" target="_blank">Cafe</a>
+    </div>
+     <div id="footer-right">
+      联系方式&nbsp;|&nbsp;xiaolgoon@gmail.com
+    </div>
+  </div>
+</footer>
+ <script src="/jquery/jquery.min.js"></script>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">归档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    <img class="back-to-top-btn" src="/images/fly-to-top.png">
+<script>
+// Elevator script included on the page, already.
+window.onload = function() {
+  var elevator = new Elevator({
+    selector:'.back-to-top-btn',
+    element: document.querySelector('.back-to-top-btn'),
+    duration: 1000 // milliseconds
+  });
+}
+</script>
+    
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      })
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      })
+    </script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/mathjax/MathJax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+ <script src="/js/is.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+<script src="/js/elevator.js"></script>
+  </div>
+</body>
+</html>

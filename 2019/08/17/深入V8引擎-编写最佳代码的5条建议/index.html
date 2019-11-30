@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>V8引擎及优化代码的5条建议 | Dasu&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="概述JavaScript引擎（以下简称“JS引擎”）是用来执行JavaScript代码的程序或解释器。JS引擎可以实现为标准解释器，或者是可以将JavaScript代码编译为某种格式的即时（JIT，just-in-time）编译器。 下面列出了一些比较流行的实现了JS引擎的项目：  V8 —— 开源项目，由 Google 开发，C++编写 Rhino —— Mozilla 基金会管理的开源项目，完">
+<meta name="keywords" content="JavaScript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="V8引擎及优化代码的5条建议">
+<meta property="og:url" content="https://liangjingzhen.github.io/2019/08/17/深入V8引擎-编写最佳代码的5条建议/index.html">
+<meta property="og:site_name" content="Dasu&#39;s Blog">
+<meta property="og:description" content="概述JavaScript引擎（以下简称“JS引擎”）是用来执行JavaScript代码的程序或解释器。JS引擎可以实现为标准解释器，或者是可以将JavaScript代码编译为某种格式的即时（JIT，just-in-time）编译器。 下面列出了一些比较流行的实现了JS引擎的项目：  V8 —— 开源项目，由 Google 开发，C++编写 Rhino —— Mozilla 基金会管理的开源项目，完">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://liangjingzhen.github.io/images/how_javascript_works/v8_fun_call.png">
+<meta property="og:updated_time" content="2019-11-30T07:31:05.057Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="V8引擎及优化代码的5条建议">
+<meta name="twitter:description" content="概述JavaScript引擎（以下简称“JS引擎”）是用来执行JavaScript代码的程序或解释器。JS引擎可以实现为标准解释器，或者是可以将JavaScript代码编译为某种格式的即时（JIT，just-in-time）编译器。 下面列出了一些比较流行的实现了JS引擎的项目：  V8 —— 开源项目，由 Google 开发，C++编写 Rhino —— Mozilla 基金会管理的开源项目，完">
+<meta name="twitter:image" content="https://liangjingzhen.github.io/images/how_javascript_works/v8_fun_call.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Dasu&#39;s Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    
+    <div id="header-inner" class="inner">
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://liangjingzhen.github.io"></form>
+      </div>
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">归档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      
+    </div>
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Dasu&#39;s Blog</a>
+      </h1>
+      
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-深入V8引擎-编写最佳代码的5条建议" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/08/17/深入V8引擎-编写最佳代码的5条建议/" class="article-date">
+  <time datetime="2019-08-17T03:33:54.000Z" itemprop="datePublished">2019-08-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/JavaScript工作原理/">JavaScript工作原理</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      V8引擎及优化代码的5条建议
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <!-- Table of Contents -->
+        
+        <h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>JavaScript引擎（以下简称“JS引擎”）是用来执行JavaScript代码的程序或解释器。<br>JS引擎可以实现为标准解释器，或者是可以将JavaScript代码编译为某种格式的即时（JIT，just-in-time）编译器。</p>
+<p>下面列出了一些比较流行的实现了JS引擎的项目：</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/V8_%28JavaScript_engine%29" target="_blank" rel="noopener">V8</a> —— 开源项目，由 Google 开发，C++编写</li>
+<li><a href="https://en.wikipedia.org/wiki/Rhino_%28JavaScript_engine%29" target="_blank" rel="noopener">Rhino</a> —— Mozilla 基金会管理的开源项目，完全由 Java 开发</li>
+<li><a href="https://en.wikipedia.org/wiki/SpiderMonkey_%28JavaScript_engine%29" target="_blank" rel="noopener">SpiderMonkey</a> —— 第一个JS引擎，以前属于网景浏览器，现在属于Firefox</li>
+<li><a href="https://en.wikipedia.org/wiki/JavaScriptCore" target="_blank" rel="noopener">JavaScriptCore</a> —— 开源项目，是苹果公司为 Safari 开发的，对外称作 Nitro</li>
+<li><a href="https://en.wikipedia.org/wiki/KJS_%28KDE%29" target="_blank" rel="noopener">KJS</a> —— 最初由 Harri Porten 为  KDE 项目的<code>Konqueror</code>网页浏览器开发的 KDE 引擎</li>
+<li><a href="https://en.wikipedia.org/wiki/Chakra_%28JScript_engine%29" target="_blank" rel="noopener">Chakra (JScript9)</a> —— Internet Explorer</li>
+<li><a href="https://en.wikipedia.org/wiki/Chakra_%28JavaScript_engine%29" target="_blank" rel="noopener">Chakra (JavaScript)</a> —— Microsoft Edge</li>
+<li><a href="https://en.wikipedia.org/wiki/Nashorn_%28JavaScript_engine%29" target="_blank" rel="noopener">Nashorn</a> —— 开源项目，OpenJDK 的一部分，由 Oracle Java语言和工具组（Oracle Java Languages and Tool Group）编写</li>
+<li><a href="https://en.wikipedia.org/wiki/JerryScript" target="_blank" rel="noopener">JerryScript</a> —— 用于物联网（Internet of Things）的一款轻量级引擎</li>
+</ul>
+<h3 id="为什么会有-V8-引擎？"><a href="#为什么会有-V8-引擎？" class="headerlink" title="为什么会有 V8 引擎？"></a>为什么会有 V8 引擎？</h3><p>V8 引擎是 Google 的开源项目，用 C++ 编写。Google Chrome 浏览器内部用的就是该引擎。与其他引擎不同的是，V8 引擎还是 Node.js 运行时的。</p>
+<p>V8 最初被设计出来是为了提升 web 浏览器的 JavaScript 代码执行性能。为了提高速度，V8 没有使用解释器，而是像大多数现代 JS 引擎，比如 SpiderMonkey 或者 Rhino（Mozilla）那样，通过实现一种 JIT 编译器，在执行过程中将 JavaScript 代码编译为更高效的机器码。</p>
+<h3 id="V8-曾经使用的两个编译器"><a href="#V8-曾经使用的两个编译器" class="headerlink" title="V8 曾经使用的两个编译器"></a>V8 曾经使用的两个编译器</h3><p>在 5.9 版本发布之前，V8 引擎通常使用两个编译器：</p>
+<ul>
+<li>full-codegen —— 一种简单且非常快速的编译器，可以生成简单但速度相对较慢的机器码</li>
+<li>Crankshaft —— 一种更复杂（JIT）的优化编译器，可以生成高度优化的代码</li>
+</ul>
+<p>V8 引擎内部也使用了多个线程：</p>
+<ul>
+<li>主线程完成你所期望的任务：获取代码，编译并执行</li>
+<li>另一个独立的编译线程，可以确保在优化代码的同时，不影响主线程的运行</li>
+<li>一个分析线程，用于通知运行时在哪些方法上面花费了大量时间，以便 Crankshaft 对其进行优化</li>
+<li>一些垃圾回收线程</li>
+</ul>
+<p>当第一次执行 JavaScript 代码时，V8 利用 full-codegen 直接将解析后的代码翻译成机器码，而不进行任何转换。这样就能非常快速地开始执行机器码。需要注意的是，V8 并没有在该过程中使用中间字节码形式，因而也无需使用解释器。</p>
+<p>当代码运行一段时间后，分析线程就会收集到足够多的数据来判断哪些代码需要优化。</p>
+<p>接下来，在另一个线程中 Crankshaft 开始进行优化。它将 JavaScript 抽象语法树转换为一种称作 Hydrogen 的高级静态单赋值（<a href="https://en.wikipedia.org/wiki/Static_single_assignment_form" target="_blank" rel="noopener">SSA</a>，static single-assignment）表示形式，并尝试优化 Hydrogen 图。大多数优化都是在这级完成的。</p>
+<h3 id="内联"><a href="#内联" class="headerlink" title="内联"></a>内联</h3><p>第一个优化就是提前内联尽可能多的代码。内联是将函数调用点（调用函数的代码行）替换为函数体的过程。这一简单步骤使得后续的优化更有意义。</p>
+<p><img src="/images/how_javascript_works/v8_fun_call.png" alt></p>
+<h3 id="隐藏类"><a href="#隐藏类" class="headerlink" title="隐藏类"></a>隐藏类</h3><p>JavaScript 是基于原型的语言：它没有类；对象通过克隆方式创建。JavaScript 同时也是一门动态语言，意味着你可以很容易给一个对象实例添加或删除属性。</p>
+<p>大多数 JavaScript 解释器使用类字典结构（基于哈希函数）来存储对象属性值在内存中的位置。这种结构使得在 JavaScript 中检索一个属性值要比在 Java 或 C# 等非静态语言中带来更多的计算开销。在 Java 中，所有的对象属性在编译前就已经由固定的对象结构确定了，而不能在运行时动态添加或删除（当然了，C# 中也有动态类型，但这是另一个话题了）。因此，这些属性值（或指向这些属性的指针）就能被以彼此相固定的偏移量存储在一段连续的内存当中。偏移长度可以很容易由属性类型确定，而在 JavaScript 中这是不可能的，因为其属性类型可以在运行时被改变。</p>
+<p>由于使用字典在内存中查找对象属性非常低效，V8 使用了另外一种方法：<strong>隐藏类</strong>。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://liangjingzhen.github.io/2019/08/17/深入V8引擎-编写最佳代码的5条建议/" data-id="ck3larhyb000b1wpl4deip9ik" class="article-share-link">分享</a>
+      
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/">JavaScript</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+ <script src="/jquery/jquery.min.js"></script>
+  <div id="random_posts">
+    <h2>推荐文章</h2>
+    <div class="random_posts_ul">
+      <script>
+          var random_count =4
+          var site = {BASE_URI:'/'};
+          function load_random_posts(obj) {
+              var arr=site.posts;
+              if (!obj) return;
+              // var count = $(obj).attr('data-count') || 6;
+              for (var i, tmp, n = arr.length; n; i = Math.floor(Math.random() * n), tmp = arr[--n], arr[n] = arr[i], arr[i] = tmp);
+              arr = arr.slice(0, random_count);
+              var html = '<ul>';
+            
+              for(var j=0;j<arr.length;j++){
+                var item=arr[j];
+                html += '<li><strong>' + 
+                item.date + ':&nbsp;&nbsp;<a href="' + (site.BASE_URI+item.uri) + '">' + 
+                (item.title || item.uri) + '</a></strong>';
+                if(item.excerpt){
+                  html +='<div class="post-excerpt">'+item.excerpt+'</div>';
+                }
+                html +='</li>';
+                
+              }
+              $(obj).html(html + '</ul>');
+          }
+          $('.random_posts_ul').each(function () {
+              var c = this;
+              if (!site.posts || !site.posts.length){
+                  $.getJSON(site.BASE_URI + 'js/posts.js',function(json){site.posts = json;load_random_posts(c)});
+              } 
+               else{
+                load_random_posts(c);
+              }
+          });
+      </script>
+    </div>
+  </div>
+
+    
+<nav id="article-nav">
+  
+    <a href="/2019/08/24/ES6以后各版本新特性/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          ES6以后各版本新特性
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/04/27/echarts地图自适应中出现重叠错位的两个地图问题排查/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">echarts地图自适应中出现重叠错位的两个地图问题排查</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+ 
+     
+  <div class="comments" id="comments">
+    
+     
+       
+      <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
+    
+       
+      
+      
+  </div>
+ 
+  
+
+</section>
+           
+    <aside id="sidebar">
+  
+    
+    <div class="widget-wrap">
+    
+      <div class="widget" id="toc-widget-fixed">
+      
+        <strong class="toc-title">文章目录</strong>
+        <div class="toc-widget-list">
+              <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#概述"><span class="toc-number">1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#为什么会有-V8-引擎？"><span class="toc-number">2.</span> <span class="toc-text">为什么会有 V8 引擎？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#V8-曾经使用的两个编译器"><span class="toc-number">3.</span> <span class="toc-text">V8 曾经使用的两个编译器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#内联"><span class="toc-number">4.</span> <span class="toc-text">内联</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#隐藏类"><span class="toc-number">5.</span> <span class="toc-text">隐藏类</span></a></li></ol>
+          </div>
+      </div>
+    </div>
+
+  
+    
+
+  
+    
+  
+    
+  
+    
+
+  
+</aside>
+
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-left">
+      &copy; 2014 - 2019 Dasu&nbsp;|&nbsp;
+      主题 <a href="https://github.com/giscafer/hexo-theme-cafe/" target="_blank">Cafe</a>
+    </div>
+     <div id="footer-right">
+      联系方式&nbsp;|&nbsp;xiaolgoon@gmail.com
+    </div>
+  </div>
+</footer>
+ <script src="/jquery/jquery.min.js"></script>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">归档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    <img class="back-to-top-btn" src="/images/fly-to-top.png">
+<script>
+// Elevator script included on the page, already.
+window.onload = function() {
+  var elevator = new Elevator({
+    selector:'.back-to-top-btn',
+    element: document.querySelector('.back-to-top-btn'),
+    duration: 1000 // milliseconds
+  });
+}
+</script>
+    
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      })
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      })
+    </script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/mathjax/MathJax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+ <script src="/js/is.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+<script src="/js/elevator.js"></script>
+  </div>
+</body>
+</html>
